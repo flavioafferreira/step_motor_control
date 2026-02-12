@@ -113,14 +113,18 @@ void Error_Handler(void);
 #define ON  1
 #define OFF 0
 
+#define ENABLE  1
+#define DISABLE 0
+
+
 #define POWER_ON OFF
 #define POWER_OFF ON
 
 #define RIGHT OFF
 #define LEFT ON
 
-#define MOTOR_X 1
-#define MOTOR_Y 2
+#define MOTOR_X 0
+#define MOTOR_Y 1
 
 
 
@@ -147,8 +151,8 @@ typedef struct step_config_ {
 }step_config_st;
 
 typedef struct dir_status_ {
-      uint8_t direction;
-      uint8_t motor_number;
+      uint8_t direction[2];
+
 }dir_status_st;
 
 

@@ -107,27 +107,31 @@ step_config_st step_configuration(uint8_t value){
 dir_status_st motor_dir(uint8_t motor_number, uint8_t direction){
 	dir_status_st internal_dir;
 
-	if (motor_number==MOTOR_X && direction==RIGHT){MOTOR_X_RIGHT}
-	if (motor_number==MOTOR_X && direction==LEFT){MOTOR_X_LEFT}
+	if (direction==RIGHT){
+		if (motor_number==MOTOR_X){ MOTOR_X_RIGHT }
+		if (motor_number==MOTOR_Y){ MOTOR_Y_RIGHT }
 
-	if (motor_number==MOTOR_Y && direction==RIGHT){MOTOR_Y_RIGHT}
-	if (motor_number==MOTOR_Y && direction==LEFT){MOTOR_Y_LEFT}
+	 }
+	if (direction==LEFT){
+		if (motor_number==MOTOR_X){ MOTOR_X_LEFT }
+		if (motor_number==MOTOR_Y){ MOTOR_Y_LEFT }
+	 }
 
-	internal_dir.motor_number=motor_number;
-	internal_dir.direction=direction;
+
+	internal_dir.direction[motor_number]=direction;
 	return internal_dir;
 }
 
 void reset_driver(void){
 	RESET_ON_CTRL;
-	LL_mDelay(50);
+	LL_mDelay(1);
 	RESET_OFF_CTRL;
 }
 
 bit_state_st sleep_driver(uint8_t status){
 	bit_state_st internal;
 
-	if(status)SLEEP_ON_CTRL
+	if(!status)SLEEP_ON_CTRL
 	else SLEEP_OFF_CTRL
 
 	internal.status=status;

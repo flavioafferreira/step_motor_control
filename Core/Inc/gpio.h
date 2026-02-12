@@ -32,6 +32,7 @@ extern "C" {
 #define LED_PIN_ON  LL_GPIO_SetOutputPin(Jump_LED_GPIO_Port, Jump_LED_Pin);
 #define LED_PIN_OFF LL_GPIO_ResetOutputPin(Jump_LED_GPIO_Port, Jump_LED_Pin);
 
+// https://www.allegromicro.com/-/media/files/datasheets/a4988-datasheet.pdf
 //STEP PROGRAMMING
 #define MS1_ON LL_GPIO_SetOutputPin(MS1_GPIO_Port, MS1_Pin);
 #define MS1_OFF LL_GPIO_ResetOutputPin(MS1_GPIO_Port, MS1_Pin);
@@ -54,17 +55,17 @@ extern "C" {
 
 //LINES CONTROL
 
-//ENABLE MOTORS
-#define DISABLE_MOTORS LL_GPIO_ResetOutputPin(Enable_GPIO_Port, Enable_Pin);
-#define ENABLE_MOTORS  LL_GPIO_SetOutputPin(Enable_GPIO_Port, Enable_Pin);
+//ENABLE MOTORS - ACTIVE IN LOW STATE
+#define DISABLE_MOTORS LL_GPIO_SetOutputPin(Enable_GPIO_Port, Enable_Pin);
+#define ENABLE_MOTORS  LL_GPIO_ResetOutputPin(Enable_GPIO_Port, Enable_Pin);
 
-//RESET DRIVER
-#define RESET_OFF_CTRL LL_GPIO_ResetOutputPin(Reset_GPIO_Port, Reset_Pin);
-#define RESET_ON_CTRL LL_GPIO_SetOutputPin(Reset_GPIO_Port, Reset_Pin);
+//RESET DRIVER - ACTIVE IN LOW STATE
+#define RESET_OFF_CTRL LL_GPIO_SetOutputPin(Reset_GPIO_Port, Reset_Pin);
+#define RESET_ON_CTRL LL_GPIO_ResetOutputPin(Reset_GPIO_Port, Reset_Pin);
 
-//SLEEP MODE
-#define SLEEP_OFF_CTRL LL_GPIO_ResetOutputPin(Sleep_GPIO_Port, Sleep_Pin);
-#define SLEEP_ON_CTRL LL_GPIO_SetOutputPin(Sleep_GPIO_Port, Sleep_Pin);
+//SLEEP MODE- ACTIVE IN LOW STATE
+#define SLEEP_OFF_CTRL LL_GPIO_SetOutputPin(Sleep_GPIO_Port, Sleep_Pin);
+#define SLEEP_ON_CTRL LL_GPIO_ResetOutputPin(Sleep_GPIO_Port, Sleep_Pin);
 
 
 

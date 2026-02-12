@@ -45,7 +45,7 @@
 
 relay_st relay;
 bit_state_st enable_driver;
-bit_state_st sleep_driver;
+bit_state_st sleep_all_drivers;
 step_config_st step_config;  //DONE
 dir_status_st motor_direction; //DONE
 
@@ -165,10 +165,20 @@ int main(void)
 
   printf("StepMotor OK\n\r");
   relay=relay_on_off(POWER_OFF);
+  uint8_t i=0;
+  uint8_t lado_giro=LEFT;
+
+  M1_STEP_OFF
+  M2_STEP_OFF
+
+  enable_driver=sleep_driver(DISABLE);
+  sleep_all_drivers=enable_motors(DISABLE);
   step_config=step_configuration(STEP_SIXTEENTH);
   motor_direction=motor_dir(MOTOR_X, RIGHT);
-  enable_driver=sleep_driver(ON);
-  sleep_driver=enable_motors(ON);
+  motor_direction=motor_dir(MOTOR_Y, RIGHT);
+  reset_driver();                       //PA13
+  enable_driver=sleep_driver(ENABLE);      //PA2
+  sleep_all_drivers=enable_motors(ENABLE); //PA14
 
   /* USER CODE END 2 */
 
@@ -179,14 +189,36 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  LL_GPIO_SetOutputPin(M1_Step_GPIO_Port, M1_Step_Pin);
-	  LL_GPIO_ResetOutputPin(M1_Dir_GPIO_Port, M1_Dir_Pin);
-	  LL_mDelay(50);
-	  LL_GPIO_SetOutputPin(M1_Dir_GPIO_Port, M1_Dir_Pin);
-	  LL_GPIO_ResetOutputPin(M1_Step_GPIO_Port, M1_Step_Pin);
+	  LED_PIN_OFF
 	  LL_mDelay(50);
 	  cmd_analise_task(); //verify input commands
-	  LL_mDelay(50);
+
+	  i++;
+	  if (i>=10){
+		  if(lado_giro==LEFT){ motor_direction=motor_dir(MOTOR_X, RIGHT);
+		                       motor_direction=motor_dir(MOTOR_Y, RIGHT);
+		                       lado_giro=RIGHT;
+
+		    }else  if(lado_giro==RIGHT){ motor_direction=motor_dir(MOTOR_X, LEFT);
+		                        motor_direction=motor_dir(MOTOR_Y, LEFT);
+		                        lado_giro=LEFT;
+		           }
+		  i=0;
+	  }
+
+
+
+	  LED_PIN_ON
+	  M1_STEP_ON
+	  M2_STEP_ON
+	  LL_mDelay(1);
+	  M1_STEP_OFF
+	  M2_STEP_OFF
+
+
+	  LL_mDelay(100);
+
+
 
   }
   /* USER CODE END 3 */
