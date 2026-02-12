@@ -173,7 +173,7 @@ int main(void)
 
   enable_driver=sleep_driver(DISABLE);
   sleep_all_drivers=enable_motors(DISABLE);
-  step_config=step_configuration(STEP_SIXTEENTH);
+  step_config=step_configuration(STEP_FULL);
   motor_direction=motor_dir(MOTOR_X, RIGHT);
   motor_direction=motor_dir(MOTOR_Y, RIGHT);
   reset_driver();                       //PA13
@@ -190,11 +190,11 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  LED_PIN_OFF
-	  LL_mDelay(50);
+	  LL_mDelay(2);
 	  cmd_analise_task(); //verify input commands
 
 	  i++;
-	  if (i>=10){
+	  if (i>=100){
 		  if(lado_giro==LEFT){ motor_direction=motor_dir(MOTOR_X, RIGHT);
 		                       motor_direction=motor_dir(MOTOR_Y, RIGHT);
 		                       lado_giro=RIGHT;
@@ -216,7 +216,7 @@ int main(void)
 	  M2_STEP_OFF
 
 
-	  LL_mDelay(100);
+	  LL_mDelay(2);
 
 
 
