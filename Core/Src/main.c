@@ -17,7 +17,7 @@
   */
 
 /*
- * USART SERIAL SPEED 1MBPS
+ * USART SERIAL SPEED 115kbps
  *
  */
 
@@ -35,6 +35,8 @@
 #include "stdio.h"
 #include "math.h"
 #include "string.h"
+#include "special.h"
+
 
 /* USER CODE END Includes */
 
@@ -42,7 +44,14 @@
 /* USER CODE BEGIN PTD */
 
 relay_st relay;
-relay_st relay_on_off(uint8_t control);
+bit_state_st enable_driver;
+bit_state_st sleep_driver;
+step_config_st step_config;  //DONE
+dir_status_st motor_direction; //DONE
+
+
+
+
 char *str_cmd[QTY_CMD] = CMD_DEFINITION;
 extern char rx_buffer[RX_BUFFER_SIZE];
 
@@ -79,9 +88,12 @@ void exec_cmd(uint8_t cmd){
        switch(cmd){
 
        case 0:
-    	   printf("CMD MEM\n\r");
+    	   printf("LED ON\n\r");
+    	   relay_on_off(POWER_ON);
     	   break;
        case 1:
+    	   printf("LED OFF\n\r");
+    	   relay_on_off(POWER_OFF);
     	   break;
        case 2:
     	   break;
@@ -92,72 +104,12 @@ void exec_cmd(uint8_t cmd){
        default:
 
        }
+       memset(rx_buffer, 0, sizeof(rx_buffer));
+
 
 }
 
 
-//redirect the printf to usart1
-int _write(int file, char *ptr, int len) {
-    for (int i = 0; i < len; i++) {
-        while (!LL_USART_IsActiveFlag_TXE(USART1));  // Wait for the buffer to be empty
-        LL_USART_TransmitData8(USART1, ptr[i]);  // Send a character
-    }
-    while (!LL_USART_IsActiveFlag_TC(USART1));  // Wait for the transmission to finish
-    return len;
-}
-
-void print_float(float number) {
-    int32_t mantissa = (int32_t)number;  // Integer part
-    float intermediate = number - mantissa;
-    int32_t expoente = (int32_t)(intermediate * 100000); // Decimal part (5 digits)
-
-    // Ensure the exponent is positive
-    if (expoente < 0) expoente *= -1;
-
-    // Correct printing ensuring 5 digits in the decimal part
-    printf("%ld.%05ld", mantissa, expoente);
-}
-
-void print_float_1dec(float number) {
-    int32_t mantissa = (int32_t)number;  // Integer part
-    float intermediate = number - mantissa;
-    int32_t expoente = (int32_t)(intermediate * 100000); // Decimal part (5 digits)
-
-    // Ensure the exponent is positive
-    if (expoente < 0) expoente *= -1;
-
-    while (expoente >= 10) {
-    	expoente /= 10;
-        }
-    // Correct printing ensuring 1 digit
-    printf("%ld.%ld", mantissa, expoente);
-}
-
-
-void sort(float* data, int n) {
-    for (int i = 0; i < n - 1; ++i) {
-
-        for (int j = 0; j < n - i - 1; ++j) {
-            if (data[j] > data[j + 1]) {
-                float temp = data[j];
-                data[j] = data[j + 1];
-                data[j + 1] = temp;
-            }
-        }
-    }
-}
-
-float trimmed_mean(float* data, int n, float trim_percentage) {
-    int trim_count = (int)(n * trim_percentage / 100);
-    sort(data, n);
-    float sum = 0.0;
-    for (int i = trim_count; i < n - trim_count; ++i) {
-        sum += data[i];
-    }
-    int remaining_elements = n - 2 * trim_count;
-    float trimmed_mean_value = sum / remaining_elements;
-    return trimmed_mean_value;
-}
 
 void cmd_analise_task(void){
 	int result;
@@ -212,7 +164,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   printf("StepMotor OK\n\r");
-
+  relay=relay_on_off(POWER_OFF);
+  step_config=step_configuration(STEP_SIXTEENTH);
+  motor_direction=motor_dir(MOTOR_X, RIGHT);
+  enable_driver=sleep_driver(ON);
+  sleep_driver=enable_motors(ON);
 
   /* USER CODE END 2 */
 
@@ -229,11 +185,8 @@ int main(void)
 	  LL_GPIO_SetOutputPin(M1_Dir_GPIO_Port, M1_Dir_Pin);
 	  LL_GPIO_ResetOutputPin(M1_Step_GPIO_Port, M1_Step_Pin);
 	  LL_mDelay(50);
-
-	  printf("Loop\n\r");
-	  LL_mDelay(500);
-
-
+	  cmd_analise_task(); //verify input commands
+	  LL_mDelay(50);
 
   }
   /* USER CODE END 3 */

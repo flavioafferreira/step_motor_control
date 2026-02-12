@@ -77,8 +77,12 @@ void Error_Handler(void);
 #define MS1_GPIO_Port GPIOA
 #define MS2_Pin LL_GPIO_PIN_1
 #define MS2_GPIO_Port GPIOA
-#define MS3_Pin LL_GPIO_PIN_4
+#define Enable_Pin LL_GPIO_PIN_2
+#define Enable_GPIO_Port GPIOA
+#define MS3_Pin LL_GPIO_PIN_3
 #define MS3_GPIO_Port GPIOA
+#define Jump_LED_Pin LL_GPIO_PIN_4
+#define Jump_LED_GPIO_Port GPIOA
 #define M1_Step_Pin LL_GPIO_PIN_5
 #define M1_Step_GPIO_Port GPIOA
 #define M1_Dir_Pin LL_GPIO_PIN_6
@@ -87,10 +91,6 @@ void Error_Handler(void);
 #define M2_Step_GPIO_Port GPIOA
 #define M2_Dir_Pin LL_GPIO_PIN_1
 #define M2_Dir_GPIO_Port GPIOB
-#define Impulse_Pin LL_GPIO_PIN_9
-#define Impulse_GPIO_Port GPIOA
-#define Enable_Pin LL_GPIO_PIN_10
-#define Enable_GPIO_Port GPIOA
 #define Reset_Pin LL_GPIO_PIN_13
 #define Reset_GPIO_Port GPIOA
 #define Sleep_Pin LL_GPIO_PIN_14
@@ -116,18 +116,47 @@ void Error_Handler(void);
 #define POWER_ON OFF
 #define POWER_OFF ON
 
+#define RIGHT OFF
+#define LEFT ON
+
+#define MOTOR_X 1
+#define MOTOR_Y 2
+
+
+
+//https://www.handsontec.com/dataspecs/module/A4988.pdf
+#define STEP_FULL      ((uint8_t)0b00000000)
+#define STEP_HALF      ((uint8_t)0b00000100)
+#define STEP_QUARTER   ((uint8_t)0b00000010)
+#define STEP_EIGHTH    ((uint8_t)0b00000110)
+#define STEP_SIXTEENTH ((uint8_t)0b00000111)
 
 typedef struct relay_ {
       uint8_t status;
-      uint8_t re1charge;
+      uint8_t recharge;
 
-} relay_st;
+}relay_st;
+
+
+typedef struct bit_state_ {
+      uint8_t status;
+}bit_state_st;
+
+typedef struct step_config_ {
+      uint8_t step;
+}step_config_st;
+
+typedef struct dir_status_ {
+      uint8_t direction;
+      uint8_t motor_number;
+}dir_status_st;
+
 
 
 #define RX_BUFFER_SIZE 30
 #define QTY_CMD 5
-#define CMD_0 "mem"
-#define CMD_1 "debug"
+#define CMD_0 "led_off"
+#define CMD_1 "led_on"
 #define CMD_2 "reset"
 #define CMD_3 "nodebug"
 #define CMD_4 "update"
