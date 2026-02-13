@@ -62,7 +62,7 @@ void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(MS3_GPIO_Port, MS3_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(Jump_LED_GPIO_Port, Jump_LED_Pin);
+  LL_GPIO_ResetOutputPin(Reset_GPIO_Port, Reset_Pin);
 
   /**/
   LL_GPIO_ResetOutputPin(M1_Dir_GPIO_Port, M1_Dir_Pin);
@@ -71,10 +71,7 @@ void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(M2_Dir_GPIO_Port, M2_Dir_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(Reset_GPIO_Port, Reset_Pin);
-
-  /**/
-  LL_GPIO_ResetOutputPin(Sleep_GPIO_Port, Sleep_Pin);
+  LL_GPIO_ResetOutputPin(Jump_LED_GPIO_Port, Jump_LED_Pin);
 
   /**/
   GPIO_InitStruct.Pin = MS1_Pin;
@@ -109,12 +106,12 @@ void MX_GPIO_Init(void)
   LL_GPIO_Init(MS3_GPIO_Port, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = Jump_LED_Pin;
+  GPIO_InitStruct.Pin = Reset_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(Jump_LED_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(Reset_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = M1_Dir_Pin;
@@ -133,20 +130,12 @@ void MX_GPIO_Init(void)
   LL_GPIO_Init(M2_Dir_GPIO_Port, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = Reset_Pin;
+  GPIO_InitStruct.Pin = Jump_LED_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(Reset_GPIO_Port, &GPIO_InitStruct);
-
-  /**/
-  GPIO_InitStruct.Pin = Sleep_Pin;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(Sleep_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(Jump_LED_GPIO_Port, &GPIO_InitStruct);
 
 }
 

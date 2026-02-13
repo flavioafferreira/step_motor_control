@@ -34,11 +34,11 @@ extern "C" {
 
 // https://www.allegromicro.com/-/media/files/datasheets/a4988-datasheet.pdf
 //MANUAL STEP PROGRAMMING -  step_config_st step_configuration(StepMode_t mode) on special.h
-#define MS1_ON LL_GPIO_SetOutputPin(MS1_GPIO_Port, MS1_Pin);
+#define MS1_ON LL_GPIO_SetOutputPin(MS1_GPIO_Port, MS1_Pin);  //PA0
 #define MS1_OFF LL_GPIO_ResetOutputPin(MS1_GPIO_Port, MS1_Pin);
-#define MS2_ON LL_GPIO_SetOutputPin(MS2_GPIO_Port, MS2_Pin);
+#define MS2_ON LL_GPIO_SetOutputPin(MS2_GPIO_Port, MS2_Pin);  //PA1
 #define MS2_OFF LL_GPIO_ResetOutputPin(MS2_GPIO_Port, MS2_Pin);
-#define MS3_ON LL_GPIO_SetOutputPin(MS3_GPIO_Port, MS3_Pin);
+#define MS3_ON LL_GPIO_SetOutputPin(MS3_GPIO_Port, MS3_Pin);  //PA3
 #define MS3_OFF LL_GPIO_ResetOutputPin(MS3_GPIO_Port, MS3_Pin);
 
 //MOTOR DIRECTION
@@ -58,9 +58,6 @@ extern "C" {
 #define RESET_OFF_CTRL LL_GPIO_SetOutputPin(Reset_GPIO_Port, Reset_Pin);
 #define RESET_ON_CTRL LL_GPIO_ResetOutputPin(Reset_GPIO_Port, Reset_Pin);
 
-//SLEEP MODE- ACTIVE IN LOW STATE
-#define SLEEP_OFF_CTRL LL_GPIO_SetOutputPin(Sleep_GPIO_Port, Sleep_Pin);
-#define SLEEP_ON_CTRL LL_GPIO_ResetOutputPin(Sleep_GPIO_Port, Sleep_Pin);
 
 
 

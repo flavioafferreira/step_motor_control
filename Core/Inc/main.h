@@ -81,8 +81,8 @@ void Error_Handler(void);
 #define Enable_GPIO_Port GPIOA
 #define MS3_Pin LL_GPIO_PIN_3
 #define MS3_GPIO_Port GPIOA
-#define Jump_LED_Pin LL_GPIO_PIN_4
-#define Jump_LED_GPIO_Port GPIOA
+#define Reset_Pin LL_GPIO_PIN_4
+#define Reset_GPIO_Port GPIOA
 #define M1_Dir_Pin LL_GPIO_PIN_5
 #define M1_Dir_GPIO_Port GPIOA
 #define M1_Step_Pin LL_GPIO_PIN_6
@@ -91,10 +91,8 @@ void Error_Handler(void);
 #define M2_Step_GPIO_Port GPIOA
 #define M2_Dir_Pin LL_GPIO_PIN_1
 #define M2_Dir_GPIO_Port GPIOB
-#define Reset_Pin LL_GPIO_PIN_13
-#define Reset_GPIO_Port GPIOA
-#define Sleep_Pin LL_GPIO_PIN_14
-#define Sleep_GPIO_Port GPIOA
+#define Jump_LED_Pin LL_GPIO_PIN_13
+#define Jump_LED_GPIO_Port GPIOA
 #ifndef NVIC_PRIORITYGROUP_0
 #define NVIC_PRIORITYGROUP_0         ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,
                                                                  4 bits for subpriority */

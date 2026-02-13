@@ -158,15 +158,7 @@ void reset_driver(void){
 	RESET_OFF_CTRL;
 }
 
-bit_state_st sleep_driver(uint8_t status){
-	bit_state_st internal;
 
-	if(!status)SLEEP_ON_CTRL
-	else SLEEP_OFF_CTRL
-
-	internal.status=status;
-	return internal;
-}
 
 bit_state_st enable_motors(uint8_t status){
 	bit_state_st internal;

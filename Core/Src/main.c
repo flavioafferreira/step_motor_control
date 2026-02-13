@@ -45,7 +45,6 @@
 
 relay_st relay;
 bit_state_st enable_driver;
-bit_state_st sleep_all_drivers;
 step_config_st step_config;  //DONE
 dir_status_st motor_direction; //DONE
 
@@ -163,7 +162,8 @@ void timer17_init(void){
 
 
 
-
+//adjust the rpm in function of motor
+//missing limit the rpm and when rpm is 0, stop the motor
 void Motor_SetRPM(uint8_t motor, float rpm)
 {
     TIM_TypeDef *TIMx;
@@ -260,14 +260,12 @@ int main(void)
 
 
 
-  enable_driver=sleep_driver(DISABLE);
-  sleep_all_drivers=enable_motors(DISABLE);
+
+
   step_config=step_configuration(STEP_FULL);
   motor_direction=motor_dir(MOTOR_X, RIGHT);
   motor_direction=motor_dir(MOTOR_Y, RIGHT);
   reset_driver();                       //PA13
-  enable_driver=sleep_driver(ENABLE);      //PA2
-  sleep_all_drivers=enable_motors(ENABLE); //PA14
 
   /* USER CODE END 2 */
 
@@ -283,18 +281,20 @@ int main(void)
 	  cmd_analise_task(); //verify input commands
 
 	  i++;
-	  if (i>=100){
+	  if (i>=200){
 		  if(lado_giro==LEFT){
 			  	  	  	  	   motor_direction=motor_dir(MOTOR_X, RIGHT);
 		                       motor_direction=motor_dir(MOTOR_Y, RIGHT);
 		                       lado_giro=RIGHT;
-		                       Motor_SetRPM(MOTOR_X,10.0);
+		                       Motor_SetRPM(MOTOR_X,200.0);
+		                       Motor_SetRPM(MOTOR_Y,200.0);
 
 		    }else  if(lado_giro==RIGHT){
 		    					motor_direction=motor_dir(MOTOR_X, LEFT);
 		                        motor_direction=motor_dir(MOTOR_Y, LEFT);
 		                        lado_giro=LEFT;
-		                        Motor_SetRPM(MOTOR_X,30.0);
+		                        Motor_SetRPM(MOTOR_X,200.0);
+		                        Motor_SetRPM(MOTOR_Y,200.0);
 		           }
 		  i=0;
 	  }

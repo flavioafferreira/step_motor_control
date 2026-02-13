@@ -25,7 +25,6 @@ extern float trimmed_mean(float* data, int n, float trim_percentage);
 uint8_t rpm_divider(step_config_st step_config);
 step_config_st step_configuration(StepMode_t mode);
 dir_status_st motor_dir(uint8_t motor_number, uint8_t direction);
-bit_state_st sleep_driver(uint8_t status);
 bit_state_st enable_motors(uint8_t status);
 void reset_driver(void);
 #endif /* SRC_SPECIAL_H_ */
