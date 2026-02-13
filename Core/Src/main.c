@@ -123,6 +123,91 @@ void cmd_analise_task(void){
 }
 
 
+void timer16_init(void){
+
+
+	//for microstep 1/16 use 500us = 37.5rpm
+	//for fullstep 1/1 use   8ms = 37.5rpm, maximum 1500us for 200rpm
+
+
+	LL_TIM_SetCounter(TIM16, 0);
+	LL_TIM_SetAutoReload(TIM16,9 ); //9=10us ate 40.01ms
+	LL_TIM_OC_SetCompareCH1(TIM16, 1);
+
+	LL_TIM_EnableAllOutputs(TIM16);               // importante no TIM16
+	LL_TIM_CC_EnableChannel(TIM16, LL_TIM_CHANNEL_CH1);
+	LL_TIM_EnableCounter(TIM16);
+	LL_TIM_GenerateEvent_UPDATE(TIM16);
+
+}
+
+
+void timer17_init(void){
+
+
+	//for microstep 1/16 use 500us = 37.5rpm
+	//for fullstep 1/1 use   8ms = 37.5rpm, maximum 1500us for 200rpm
+
+
+	LL_TIM_SetCounter(TIM17, 0);
+	LL_TIM_SetAutoReload(TIM17,9 ); //9=10us ate 40.01ms
+	LL_TIM_OC_SetCompareCH1(TIM17, 1);
+
+	LL_TIM_EnableAllOutputs(TIM17);               // importante no TIM16
+	LL_TIM_CC_EnableChannel(TIM17, LL_TIM_CHANNEL_CH1);
+	LL_TIM_EnableCounter(TIM17);
+	LL_TIM_GenerateEvent_UPDATE(TIM17);
+
+}
+
+
+
+
+
+void Motor_SetRPM(uint8_t motor, float rpm)
+{
+    TIM_TypeDef *TIMx;
+    uint32_t channel = LL_TIM_CHANNEL_CH1;
+
+    // Seleciona timer conforme motor
+    if (motor == MOTOR_X)
+        TIMx = TIM16;
+    else if (motor == MOTOR_Y)
+        TIMx = TIM17;
+    else
+        return; // motor inválido
+
+    uint8_t divider = rpm_divider(step_config);  // 1,2,4,8,16
+
+    if (rpm <= 0.0f)
+    {
+        LL_TIM_CC_DisableChannel(TIMx, channel);
+        LL_TIM_OC_SetCompareCH1(TIMx, 0);
+        return;
+    }
+
+    // ARR = 360000 / (rpm * divider) - 1
+    float arr_f = (360000.0f / (rpm * (float)divider)) - 1.0f;
+
+    if (arr_f < 0.0f)
+        arr_f = 0.0f;
+
+    uint32_t arr = (uint32_t)(arr_f + 0.5f);
+
+    const uint32_t ccr = 120; // ~100us
+
+    if (arr < ccr)
+        arr = ccr;
+
+    LL_TIM_SetAutoReload(TIMx, arr);
+    LL_TIM_OC_SetCompareCH1(TIMx, ccr);
+    LL_TIM_GenerateEvent_UPDATE(TIMx);
+
+    LL_TIM_CC_EnableChannel(TIMx, channel);
+}
+
+
+
 /* USER CODE END 0 */
 
 /**
@@ -161,15 +246,19 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM3_Init();
   MX_USART1_UART_Init();
+  MX_TIM16_Init();
+  MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
+
+  timer16_init();
+  timer17_init();
 
   printf("StepMotor OK\n\r");
   relay=relay_on_off(POWER_OFF);
   uint8_t i=0;
   uint8_t lado_giro=LEFT;
 
-  M1_STEP_OFF
-  M2_STEP_OFF
+
 
   enable_driver=sleep_driver(DISABLE);
   sleep_all_drivers=enable_motors(DISABLE);
@@ -195,13 +284,17 @@ int main(void)
 
 	  i++;
 	  if (i>=100){
-		  if(lado_giro==LEFT){ motor_direction=motor_dir(MOTOR_X, RIGHT);
+		  if(lado_giro==LEFT){
+			  	  	  	  	   motor_direction=motor_dir(MOTOR_X, RIGHT);
 		                       motor_direction=motor_dir(MOTOR_Y, RIGHT);
 		                       lado_giro=RIGHT;
+		                       Motor_SetRPM(MOTOR_X,10.0);
 
-		    }else  if(lado_giro==RIGHT){ motor_direction=motor_dir(MOTOR_X, LEFT);
+		    }else  if(lado_giro==RIGHT){
+		    					motor_direction=motor_dir(MOTOR_X, LEFT);
 		                        motor_direction=motor_dir(MOTOR_Y, LEFT);
 		                        lado_giro=LEFT;
+		                        Motor_SetRPM(MOTOR_X,30.0);
 		           }
 		  i=0;
 	  }
@@ -209,12 +302,6 @@ int main(void)
 
 
 	  LED_PIN_ON
-	  M1_STEP_ON
-	  M2_STEP_ON
-	  LL_mDelay(1);
-	  M1_STEP_OFF
-	  M2_STEP_OFF
-
 
 	  LL_mDelay(2);
 

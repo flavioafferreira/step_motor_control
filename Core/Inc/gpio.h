@@ -33,7 +33,7 @@ extern "C" {
 #define LED_PIN_OFF LL_GPIO_ResetOutputPin(Jump_LED_GPIO_Port, Jump_LED_Pin);
 
 // https://www.allegromicro.com/-/media/files/datasheets/a4988-datasheet.pdf
-//STEP PROGRAMMING
+//MANUAL STEP PROGRAMMING -  step_config_st step_configuration(StepMode_t mode) on special.h
 #define MS1_ON LL_GPIO_SetOutputPin(MS1_GPIO_Port, MS1_Pin);
 #define MS1_OFF LL_GPIO_ResetOutputPin(MS1_GPIO_Port, MS1_Pin);
 #define MS2_ON LL_GPIO_SetOutputPin(MS2_GPIO_Port, MS2_Pin);
@@ -47,11 +47,6 @@ extern "C" {
 #define MOTOR_Y_RIGHT LL_GPIO_ResetOutputPin(M2_Dir_GPIO_Port, M2_Dir_Pin);
 #define MOTOR_Y_LEFT  LL_GPIO_SetOutputPin(M2_Dir_GPIO_Port, M2_Dir_Pin);
 
-//MOTOR STEP
-#define M1_STEP_OFF LL_GPIO_ResetOutputPin(M1_Step_GPIO_Port, M1_Step_Pin);
-#define M1_STEP_ON LL_GPIO_SetOutputPin(M1_Step_GPIO_Port, M1_Step_Pin);
-#define M2_STEP_OFF LL_GPIO_ResetOutputPin(M2_Step_GPIO_Port, M2_Step_Pin);
-#define M2_STEP_ON LL_GPIO_SetOutputPin(M2_Step_GPIO_Port, M2_Step_Pin);
 
 //LINES CONTROL
 

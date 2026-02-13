@@ -90,18 +90,48 @@ float trimmed_mean(float* data, int n, float trim_percentage) {
 
 //DRIVER STEP PROGRAMMING
 
-step_config_st step_configuration(uint8_t value){
-	//steps from 0 up to 15
-	step_config_st step_config;
-   if (value==STEP_FULL)     {MS1_OFF; MS2_OFF; MS3_OFF};
-   if (value==STEP_HALF)     {MS1_ON ; MS2_OFF; MS3_OFF};
-   if (value==STEP_QUARTER)  {MS1_OFF; MS2_ON;  MS3_OFF};
-   if (value==STEP_EIGHTH)   {MS1_ON ; MS2_ON;  MS3_OFF};
-   if (value==STEP_SIXTEENTH){MS1_ON ; MS2_ON;  MS3_ON };
 
-   step_config.step=value;
-   return step_config;
+uint8_t rpm_divider(step_config_st step_config){
+	switch (step_config.mode)
+    {
+        case STEP_FULL:      return 1;
+        case STEP_HALF:      return 2;
+        case STEP_QUARTER:   return 4;
+        case STEP_EIGHTH:    return 8;
+        case STEP_SIXTEENTH: return 16;
+        default:             return 1;
+    }
 }
+
+
+
+
+//step config is the same for both motors
+step_config_st step_configuration(StepMode_t mode)
+{
+    step_config_st step_config;
+
+    uint32_t clearMask = MS1_Pin | MS2_Pin | MS3_Pin;
+    uint32_t setMask   = 0;
+
+    // Monta máscara conforme os bits do enum
+    if (mode & 0x01) setMask |= MS1_Pin;   // MS1
+    if (mode & 0x02) setMask |= MS2_Pin;   // MS2
+    if (mode & 0x04) setMask |= MS3_Pin;   // MS3
+
+    // Limpa e aplica de forma atômica
+    MS1_GPIO_Port->BRR  = clearMask;
+    MS1_GPIO_Port->BSRR = setMask;
+
+    step_config.mode = mode;
+
+    return step_config;
+}
+
+
+
+
+
 
 
 dir_status_st motor_dir(uint8_t motor_number, uint8_t direction){

@@ -83,10 +83,10 @@ void Error_Handler(void);
 #define MS3_GPIO_Port GPIOA
 #define Jump_LED_Pin LL_GPIO_PIN_4
 #define Jump_LED_GPIO_Port GPIOA
-#define M1_Step_Pin LL_GPIO_PIN_5
-#define M1_Step_GPIO_Port GPIOA
-#define M1_Dir_Pin LL_GPIO_PIN_6
+#define M1_Dir_Pin LL_GPIO_PIN_5
 #define M1_Dir_GPIO_Port GPIOA
+#define M1_Step_Pin LL_GPIO_PIN_6
+#define M1_Step_GPIO_Port GPIOA
 #define M2_Step_Pin LL_GPIO_PIN_7
 #define M2_Step_GPIO_Port GPIOA
 #define M2_Dir_Pin LL_GPIO_PIN_1
@@ -129,11 +129,15 @@ void Error_Handler(void);
 
 
 //https://www.handsontec.com/dataspecs/module/A4988.pdf
-#define STEP_FULL      ((uint8_t)0b00000000)
-#define STEP_HALF      ((uint8_t)0b00000100)
-#define STEP_QUARTER   ((uint8_t)0b00000010)
-#define STEP_EIGHTH    ((uint8_t)0b00000110)
-#define STEP_SIXTEENTH ((uint8_t)0b00000111)
+typedef enum
+{
+    STEP_FULL      = 0b00000000,
+    STEP_HALF      = 0b00000100,
+    STEP_QUARTER   = 0b00000010,
+    STEP_EIGHTH    = 0b00000110,
+    STEP_SIXTEENTH = 0b00000111
+
+} StepMode_t;
 
 typedef struct relay_ {
       uint8_t status;
@@ -147,13 +151,15 @@ typedef struct bit_state_ {
 }bit_state_st;
 
 typedef struct step_config_ {
-      uint8_t step;
+      uint8_t mode;
 }step_config_st;
 
 typedef struct dir_status_ {
       uint8_t direction[2];
 
 }dir_status_st;
+
+
 
 
 
