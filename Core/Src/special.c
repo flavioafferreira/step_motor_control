@@ -112,7 +112,18 @@ uint8_t rpm_divider(step_config_st step_config){
 }
 
 
-
+static StepMode_t step_from_divider(int n)
+{
+    switch(n)
+    {
+        case 1:  return STEP_FULL;
+        case 2:  return STEP_HALF;
+        case 4:  return STEP_QUARTER;
+        case 8:  return STEP_EIGHTH;
+        case 16: return STEP_SIXTEENTH;
+        default: return STEP_FULL;
+    }
+}
 
 //step config is the same for both motors
 step_config_st step_configuration(StepMode_t mode)
@@ -227,7 +238,7 @@ bit_state_st enable_motors(uint8_t status){
 //parser
 
 
-
+/*
 cmd_t parse_line(const char *s)
 {
     cmd_t c = {0, 0, 0};
@@ -298,4 +309,109 @@ void apply_cmd(const cmd_t *c){
     }
 }
 
+*/
+
+cmd_t parse_line(const char *s)
+{
+    cmd_t c = {0};
+    c.valid = 0;
+    c.type = CMD_NONE;
+
+    while (*s == ' ') s++;
+    if (*s == '\0') return c;
+
+    // ----- Comando V: velocidades -----
+    if (*s == 'V' || *s == 'v')
+    {
+        s++;
+        while (*s == ' ') s++;
+        if (*s == '\0') return c;
+
+        char *endp;
+        long x = strtol(s, &endp, 10);
+        if (endp == s) return c;
+        s = endp;
+
+        while (*s == ' ') s++;
+        if (*s == '\0') return c;
+
+        long y = strtol(s, &endp, 10);
+        if (endp == s) return c;
+
+        if (x < -2000) x = -2000;
+        if (x >  2000) x =  2000;
+        if (y < -2000) y = -2000;
+        if (y >  2000) y =  2000;
+
+        c.type  = CMD_VEL;
+        c.rpm_x = (int16_t)x;
+        c.rpm_y = (int16_t)y;
+        c.valid = 1;
+        return c;
+    }
+
+    // ----- Comando S: step mode -----
+    if (*s == 'S' || *s == 's')
+    {
+        s++;
+        while (*s == ' ') s++;
+        if (*s == '\0') return c;
+
+        char *endp;
+        long n = strtol(s, &endp, 10);
+        if (endp == s) return c;
+
+        // aceita somente 1/2/4/8/16
+        if (!(n == 1 || n == 2 || n == 4 || n == 8 || n == 16))
+            return c;
+
+        c.type = CMD_STEP;
+        c.step_mode = step_from_divider((int)n);
+        c.valid = 1;
+        return c;
+    }
+
+    return c;
+}
+
+void apply_cmd(const cmd_t *c)
+{
+    if (!c || !c->valid) return;
+
+    if (c->type == CMD_STEP)
+    {
+        // Sugestão segura: pare motores antes de mudar o passo
+        Motor_SetRPM(MOTOR_X, 0);
+        Motor_SetRPM(MOTOR_Y, 0);
+
+        // aplica nos pinos MS1/MS2/MS3 e guarda config
+        step_config = step_configuration(c->step_mode);
+        return;
+    }
+
+    if (c->type == CMD_VEL)
+    {
+        // X
+        if (c->rpm_x == 0) {
+            Motor_SetRPM(MOTOR_X, 0);
+        } else if (c->rpm_x > 0) {
+            motor_direction = motor_dir(MOTOR_X, RIGHT);
+            Motor_SetRPM(MOTOR_X, (float)c->rpm_x);
+        } else {
+            motor_direction = motor_dir(MOTOR_X, LEFT);
+            Motor_SetRPM(MOTOR_X, (float)(-c->rpm_x));
+        }
+
+        // Y
+        if (c->rpm_y == 0) {
+            Motor_SetRPM(MOTOR_Y, 0);
+        } else if (c->rpm_y > 0) {
+            motor_direction = motor_dir(MOTOR_Y, RIGHT);
+            Motor_SetRPM(MOTOR_Y, (float)c->rpm_y);
+        } else {
+            motor_direction = motor_dir(MOTOR_Y, LEFT);
+            Motor_SetRPM(MOTOR_Y, (float)(-c->rpm_y));
+        }
+    }
+}
 

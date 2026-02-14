@@ -157,10 +157,22 @@ typedef struct dir_status_ {
 
 }dir_status_st;
 
+
+typedef enum {
+    CMD_NONE = 0,
+    CMD_VEL,
+    CMD_STEP
+} cmd_type_t;
+
 typedef struct {
+    cmd_type_t type;
     int16_t rpm_x;
     int16_t rpm_y;
+    StepMode_t step_mode;
     uint8_t valid;
+
+
+
 } cmd_t;
 
 
