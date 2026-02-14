@@ -25,7 +25,7 @@
 char rx_buffer[RX_BUFFER_SIZE];
 char rx_buffer_intern[RX_BUFFER_SIZE];
 int rx_index = 0;
-
+volatile uint8_t rx_line_ready = 0;
 
 
 /* USER CODE END 0 */
@@ -116,6 +116,7 @@ void usart1_interrupt_handler(void){
 
             memcpy(rx_buffer, rx_buffer_intern, rx_index + 1);
             rx_index = 0;  // Resetar o índice para o próximo recebimento
+            rx_line_ready = 1;
             //USAR O SEMAFORO xSemaphoreGive(xSemaphoreSerialRX);
             //transferir o conteudo do buffer para outra variavel disponivel
 

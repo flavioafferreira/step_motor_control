@@ -11,6 +11,14 @@
 #include "main.h"
 #include "gpio.h"
 
+#include <ctype.h>
+#include <stdlib.h>
+
+
+extern bit_state_st enable_driver;
+extern step_config_st step_config;
+extern dir_status_st motor_direction;
+
 
 relay_st relay_on_off(uint8_t control){
    relay_st relay_ctrl;
@@ -129,6 +137,49 @@ step_config_st step_configuration(StepMode_t mode)
 }
 
 
+//adjust the rpm in function of motor
+//missing limit the rpm and when rpm is 0, stop the motor
+void Motor_SetRPM(uint8_t motor, float rpm){
+    TIM_TypeDef *TIMx;
+    uint32_t channel = LL_TIM_CHANNEL_CH1;
+
+    // Seleciona timer conforme motor
+    if (motor == MOTOR_X)
+        TIMx = TIM16;
+    else if (motor == MOTOR_Y)
+        TIMx = TIM17;
+    else
+        return; // motor inválido
+
+    uint8_t divider = rpm_divider(step_config);  // 1,2,4,8,16
+
+    if (rpm <= 0.0f)
+    {
+        LL_TIM_CC_DisableChannel(TIMx, channel);
+        LL_TIM_OC_SetCompareCH1(TIMx, 0);
+        return;
+    }
+
+    // ARR = 360000 / (rpm * divider) - 1
+    float arr_f = (360000.0f / (rpm * (float)divider)) - 1.0f;
+
+    if (arr_f < 0.0f)
+        arr_f = 0.0f;
+
+    uint32_t arr = (uint32_t)(arr_f + 0.5f);
+
+    const uint32_t ccr = 120; // ~100us
+
+    if (arr < ccr)
+        arr = ccr;
+
+    LL_TIM_SetAutoReload(TIMx, arr);
+    LL_TIM_OC_SetCompareCH1(TIMx, ccr);
+    LL_TIM_GenerateEvent_UPDATE(TIMx);
+
+    LL_TIM_CC_EnableChannel(TIMx, channel);
+}
+
 
 
 
@@ -173,5 +224,78 @@ bit_state_st enable_motors(uint8_t status){
 }
 
 
+//parser
+
+
+
+cmd_t parse_line(const char *s)
+{
+    cmd_t c = {0, 0, 0};
+
+    // Pula espaços
+    while (*s == ' ') s++;
+
+    // Comando deve começar com 'V'
+    if (*s != 'V' && *s != 'v') return c;
+    s++;
+
+    // Espera pelo menos um espaço
+    while (*s == ' ') s++;
+    if (*s == '\0') return c;
+
+    // rpmX
+    char *endp;
+    long x = strtol(s, &endp, 10);
+    if (endp == s) return c;      // não leu número
+    s = endp;
+
+    while (*s == ' ') s++;
+    if (*s == '\0') return c;
+
+    // rpmY
+    long y = strtol(s, &endp, 10);
+    if (endp == s) return c;
+
+    // (Opcional) validar faixa
+    if (x < -2000) x = -2000;
+    if (x >  2000) x =  2000;
+    if (y < -2000) y = -2000;
+    if (y >  2000) y =  2000;
+
+    c.rpm_x = (int16_t)x;
+    c.rpm_y = (int16_t)y;
+    c.valid = 1;
+    return c;
+}
+
+
+void apply_cmd(const cmd_t *c){
+    // X
+    if (c->rpm_x == 0) {
+        Motor_SetRPM(MOTOR_X, 0);
+    } else {
+        if (c->rpm_x > 0) {
+
+            motor_direction=motor_dir(MOTOR_X, RIGHT);
+            Motor_SetRPM(MOTOR_X, (float)c->rpm_x);
+        } else {
+            motor_direction=motor_dir(MOTOR_X, LEFT);
+            Motor_SetRPM(MOTOR_X, (float)(-c->rpm_x));
+        }
+    }
+
+    // Y
+    if (c->rpm_y == 0) {
+        Motor_SetRPM(MOTOR_Y, 0);
+    } else {
+        if (c->rpm_y > 0) {
+            motor_direction=motor_dir(MOTOR_Y, RIGHT);
+            Motor_SetRPM(MOTOR_Y, (float)c->rpm_y);
+        } else {
+            motor_direction=motor_dir(MOTOR_Y, LEFT);
+            Motor_SetRPM(MOTOR_Y, (float)(-c->rpm_y));
+        }
+    }
+}
 
 

@@ -27,4 +27,11 @@ step_config_st step_configuration(StepMode_t mode);
 dir_status_st motor_dir(uint8_t motor_number, uint8_t direction);
 bit_state_st enable_motors(uint8_t status);
 void reset_driver(void);
+
+void Motor_SetRPM(uint8_t motor, float rpm);
+
+cmd_t parse_line(const char *s);
+void apply_cmd(const cmd_t *c);
+
+
 #endif /* SRC_SPECIAL_H_ */

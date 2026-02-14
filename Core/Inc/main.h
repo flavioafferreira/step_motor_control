@@ -157,7 +157,11 @@ typedef struct dir_status_ {
 
 }dir_status_st;
 
-
+typedef struct {
+    int16_t rpm_x;
+    int16_t rpm_y;
+    uint8_t valid;
+} cmd_t;
 
 
 

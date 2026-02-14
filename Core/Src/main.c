@@ -48,7 +48,7 @@ bit_state_st enable_driver;
 step_config_st step_config;  //DONE
 dir_status_st motor_direction; //DONE
 
-
+extern volatile uint8_t rx_line_ready;
 
 
 char *str_cmd[QTY_CMD] = CMD_DEFINITION;
@@ -111,6 +111,7 @@ void exec_cmd(uint8_t cmd){
 
 
 void cmd_analise_task(void){
+	/*
 	int result;
         uint8_t i=0;
 		while (i<QTY_CMD){
@@ -118,6 +119,15 @@ void cmd_analise_task(void){
 		 if (!result)exec_cmd(i);
 	     i++;
 		}
+		*/
+	if (rx_line_ready) {
+	    rx_line_ready = 0;
+	    cmd_t cmd = parse_line((char*)rx_buffer);
+	    if (cmd.valid){
+	        apply_cmd(&cmd);
+		    }
+		}
+
 
 }
 
@@ -160,53 +170,36 @@ void timer17_init(void){
 }
 
 
+void test_motors(void){
+
+	  uint8_t i=0;
+	  uint8_t lado_giro=LEFT;
+
+	  while(1){
+	  i++;
+	  if (i>=200){
+		  if(lado_giro==LEFT){
+			  	  	  	  	   motor_direction=motor_dir(MOTOR_X, RIGHT);
+		                       motor_direction=motor_dir(MOTOR_Y, RIGHT);
+		                       lado_giro=RIGHT;
+		                       Motor_SetRPM(MOTOR_X,200.0);
+		                       Motor_SetRPM(MOTOR_Y,200.0);
+
+		    }else  if(lado_giro==RIGHT){
+		    					motor_direction=motor_dir(MOTOR_X, LEFT);
+		                        motor_direction=motor_dir(MOTOR_Y, LEFT);
+		                        lado_giro=LEFT;
+		                        Motor_SetRPM(MOTOR_X,200.0);
+		                        Motor_SetRPM(MOTOR_Y,200.0);
+		           }
+		  i=0;
+	  }
+
+	   LL_mDelay(2);
+	  }
 
 
-//adjust the rpm in function of motor
-//missing limit the rpm and when rpm is 0, stop the motor
-void Motor_SetRPM(uint8_t motor, float rpm)
-{
-    TIM_TypeDef *TIMx;
-    uint32_t channel = LL_TIM_CHANNEL_CH1;
-
-    // Seleciona timer conforme motor
-    if (motor == MOTOR_X)
-        TIMx = TIM16;
-    else if (motor == MOTOR_Y)
-        TIMx = TIM17;
-    else
-        return; // motor inválido
-
-    uint8_t divider = rpm_divider(step_config);  // 1,2,4,8,16
-
-    if (rpm <= 0.0f)
-    {
-        LL_TIM_CC_DisableChannel(TIMx, channel);
-        LL_TIM_OC_SetCompareCH1(TIMx, 0);
-        return;
-    }
-
-    // ARR = 360000 / (rpm * divider) - 1
-    float arr_f = (360000.0f / (rpm * (float)divider)) - 1.0f;
-
-    if (arr_f < 0.0f)
-        arr_f = 0.0f;
-
-    uint32_t arr = (uint32_t)(arr_f + 0.5f);
-
-    const uint32_t ccr = 120; // ~100us
-
-    if (arr < ccr)
-        arr = ccr;
-
-    LL_TIM_SetAutoReload(TIMx, arr);
-    LL_TIM_OC_SetCompareCH1(TIMx, ccr);
-    LL_TIM_GenerateEvent_UPDATE(TIMx);
-
-    LL_TIM_CC_EnableChannel(TIMx, channel);
 }
-
-
 
 /* USER CODE END 0 */
 
@@ -253,13 +246,8 @@ int main(void)
   timer16_init();
   timer17_init();
 
-  printf("StepMotor OK\n\r");
+  printf("\n\r\n\r<Ready>\n\r");
   relay=relay_on_off(POWER_OFF);
-  uint8_t i=0;
-  uint8_t lado_giro=LEFT;
-
-
-
 
 
   step_config=step_configuration(STEP_FULL);
@@ -276,37 +264,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  LED_PIN_OFF
 	  LL_mDelay(2);
 	  cmd_analise_task(); //verify input commands
-
-	  i++;
-	  if (i>=200){
-		  if(lado_giro==LEFT){
-			  	  	  	  	   motor_direction=motor_dir(MOTOR_X, RIGHT);
-		                       motor_direction=motor_dir(MOTOR_Y, RIGHT);
-		                       lado_giro=RIGHT;
-		                       Motor_SetRPM(MOTOR_X,200.0);
-		                       Motor_SetRPM(MOTOR_Y,200.0);
-
-		    }else  if(lado_giro==RIGHT){
-		    					motor_direction=motor_dir(MOTOR_X, LEFT);
-		                        motor_direction=motor_dir(MOTOR_Y, LEFT);
-		                        lado_giro=LEFT;
-		                        Motor_SetRPM(MOTOR_X,200.0);
-		                        Motor_SetRPM(MOTOR_Y,200.0);
-		           }
-		  i=0;
-	  }
-
-
-
-	  LED_PIN_ON
-
-	  LL_mDelay(2);
-
-
-
+	  //test_motors();
   }
   /* USER CODE END 3 */
 }
