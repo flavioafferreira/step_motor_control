@@ -83,43 +83,8 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 
 
-void exec_cmd(uint8_t cmd){
-       switch(cmd){
-
-       case 0:
-    	   printf("LED ON\n\r");
-    	   relay_on_off(POWER_ON);
-    	   break;
-       case 1:
-    	   printf("LED OFF\n\r");
-    	   relay_on_off(POWER_OFF);
-    	   break;
-       case 2:
-    	   break;
-       case 3:
-    	   break;
-       case 4:
-    	   break;
-       default:
-
-       }
-       memset(rx_buffer, 0, sizeof(rx_buffer));
-
-
-}
-
-
-
 void cmd_analise_task(void){
-	/*
-	int result;
-        uint8_t i=0;
-		while (i<QTY_CMD){
-		 result = strcmp(str_cmd[i], rx_buffer);
-		 if (!result)exec_cmd(i);
-	     i++;
-		}
-		*/
+
 	if (rx_line_ready) {
 	    rx_line_ready = 0;
 	    cmd_t cmd = parse_line((char*)rx_buffer);
