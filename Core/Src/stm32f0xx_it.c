@@ -42,7 +42,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+static volatile uint32_t g_ms_tick = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -126,7 +126,7 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-
+	 g_ms_tick++;
   /* USER CODE END SysTick_IRQn 0 */
 
   /* USER CODE BEGIN SysTick_IRQn 1 */
@@ -207,5 +207,9 @@ void USART1_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+uint32_t App_GetTick(void)
+{
+  return g_ms_tick;
+}
 
 /* USER CODE END 1 */

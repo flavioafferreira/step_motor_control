@@ -15,9 +15,20 @@
 #include <stdlib.h>
 
 
+
+
+
 extern bit_state_st enable_driver;
 extern step_config_st step_config;
 extern dir_status_st motor_direction;
+
+
+static int16_t g_curr_rpm_x = 0;
+static int16_t g_curr_rpm_y = 0;
+static int16_t g_target_rpm_x = 0;
+static int16_t g_target_rpm_y = 0;
+
+
 
 
 relay_st relay_on_off(uint8_t control){
@@ -149,7 +160,7 @@ step_config_st step_configuration(StepMode_t mode)
 
 
 //adjust the rpm in function of motor
-//missing limit the rpm and when rpm is 0, stop the motor
+//missing limit the rpm
 void Motor_SetRPM(uint8_t motor, float rpm){
     TIM_TypeDef *TIMx;
     uint32_t channel = LL_TIM_CHANNEL_CH1;
@@ -171,8 +182,8 @@ void Motor_SetRPM(uint8_t motor, float rpm){
         return;
     }
 
-    // ARR = 360000 / (rpm * divider) - 1
-    float arr_f = (360000.0f / (rpm * (float)divider)) - 1.0f;
+    // ARR = 300000 / (rpm * divider) - 1
+    float arr_f = (300000.0f / (rpm * (float)divider)) - 1.0f;
 
     if (arr_f < 0.0f)
         arr_f = 0.0f;
@@ -299,13 +310,29 @@ cmd_t parse_line(const char *s)
     return c;
 }
 
+/*
+COMMANDS
+S 1  <cr> = STEP_FULL
+S 16 <cr> = STEP_SIXTEENTH
+V 100 -120 <cr> = MOTOR X RIGHT DIRECTION 100rpm and MOTOR Y LEFT DIRECTION 120rpm
+MISSING ENABLE/DISABLE MOTORS
+MISSING SOFT ACCELERATION BETWEEN ACTUAL RPM AND NEW RPM
+*/
+
+
+
 void apply_cmd(const cmd_t *c)
 {
     if (!c || !c->valid) return;
 
-    if (c->type == CMD_STEP)
-    {
+    if (c->type == CMD_STEP){
         // Sugestão segura: pare motores antes de mudar o passo
+        g_curr_rpm_x = 0;
+        g_curr_rpm_y = 0;
+        g_target_rpm_x = 0;
+        g_target_rpm_y = 0;
+
+
         Motor_SetRPM(MOTOR_X, 0);
         Motor_SetRPM(MOTOR_Y, 0);
 
@@ -314,29 +341,65 @@ void apply_cmd(const cmd_t *c)
         return;
     }
 
-    if (c->type == CMD_VEL)
-    {
-        // X
-        if (c->rpm_x == 0) {
-            Motor_SetRPM(MOTOR_X, 0);
-        } else if (c->rpm_x > 0) {
-            motor_direction = motor_dir(MOTOR_X, RIGHT);
-            Motor_SetRPM(MOTOR_X, (float)c->rpm_x);
-        } else {
-            motor_direction = motor_dir(MOTOR_X, LEFT);
-            Motor_SetRPM(MOTOR_X, (float)(-c->rpm_x));
-        }
+    if (c->type == CMD_VEL){
+        g_target_rpm_x = c->rpm_x;
+                g_target_rpm_y = c->rpm_y;
+    }
+}
 
-        // Y
-        if (c->rpm_y == 0) {
-            Motor_SetRPM(MOTOR_Y, 0);
-        } else if (c->rpm_y > 0) {
-            motor_direction = motor_dir(MOTOR_Y, RIGHT);
-            Motor_SetRPM(MOTOR_Y, (float)c->rpm_y);
-        } else {
-            motor_direction = motor_dir(MOTOR_Y, LEFT);
-            Motor_SetRPM(MOTOR_Y, (float)(-c->rpm_y));
-        }
+
+
+
+
+
+
+void Motor_RampTask_10ms(void)
+{
+    static uint32_t last_tick = 0;
+    const uint32_t now = App_GetTick();
+
+    if ((now - last_tick) < 10U)
+        return;
+    last_tick = now;
+
+    const int16_t step_rpm = 10;
+
+    if (g_curr_rpm_x < g_target_rpm_x) {
+        g_curr_rpm_x += step_rpm;
+        if (g_curr_rpm_x > g_target_rpm_x) g_curr_rpm_x = g_target_rpm_x;
+    } else if (g_curr_rpm_x > g_target_rpm_x) {
+        g_curr_rpm_x -= step_rpm;
+        if (g_curr_rpm_x < g_target_rpm_x) g_curr_rpm_x = g_target_rpm_x;
+    }
+
+    if (g_curr_rpm_y < g_target_rpm_y) {
+        g_curr_rpm_y += step_rpm;
+        if (g_curr_rpm_y > g_target_rpm_y) g_curr_rpm_y = g_target_rpm_y;
+    } else if (g_curr_rpm_y > g_target_rpm_y) {
+        g_curr_rpm_y -= step_rpm;
+        if (g_curr_rpm_y < g_target_rpm_y) g_curr_rpm_y = g_target_rpm_y;
+    }
+
+    // X
+    if (g_curr_rpm_x == 0) {
+        Motor_SetRPM(MOTOR_X, 0);
+    } else if (g_curr_rpm_x > 0) {
+        motor_direction = motor_dir(MOTOR_X, RIGHT);
+        Motor_SetRPM(MOTOR_X, (float)g_curr_rpm_x);
+    } else {
+        motor_direction = motor_dir(MOTOR_X, LEFT);
+        Motor_SetRPM(MOTOR_X, (float)(-g_curr_rpm_x));
+    }
+
+    // Y
+    if (g_curr_rpm_y == 0) {
+        Motor_SetRPM(MOTOR_Y, 0);
+    } else if (g_curr_rpm_y > 0) {
+        motor_direction = motor_dir(MOTOR_Y, RIGHT);
+        Motor_SetRPM(MOTOR_Y, (float)g_curr_rpm_y);
+    } else {
+        motor_direction = motor_dir(MOTOR_Y, LEFT);
+        Motor_SetRPM(MOTOR_Y, (float)(-g_curr_rpm_y));
     }
 }
 

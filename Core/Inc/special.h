@@ -32,6 +32,6 @@ void Motor_SetRPM(uint8_t motor, float rpm);
 
 cmd_t parse_line(const char *s);
 void apply_cmd(const cmd_t *c);
-
+void Motor_RampTask_10ms(void);
 
 #endif /* SRC_SPECIAL_H_ */

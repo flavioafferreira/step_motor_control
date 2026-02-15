@@ -19,6 +19,10 @@
 /*
  * USART SERIAL SPEED 115kbps
  *
+ *
+ *
+ *
+ *
  */
 
 
@@ -212,12 +216,16 @@ int main(void)
   timer17_init();
 
   printf("\n\r\n\r<Ready>\n\r");
+
+  printf("COMMANDS\n\r");
+  printf("S 1  <cr> = STEP_FULL\n\r");
+  printf("S 16 <cr> = STEP_SIXTEENTH\n\r");
+  printf("V 100 -120 <cr> = MOTOR X RIGHT DIRECTION 100rpm and MOTOR Y LEFT DIRECTION 120rpm\n\r");
+
   relay=relay_on_off(POWER_OFF);
 
 
   step_config=step_configuration(STEP_FULL);
-  motor_direction=motor_dir(MOTOR_X, RIGHT);
-  motor_direction=motor_dir(MOTOR_Y, RIGHT);
   reset_driver();                       //PA13
 
   /* USER CODE END 2 */
@@ -231,6 +239,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  LL_mDelay(2);
 	  cmd_analise_task(); //verify input commands
+	  Motor_RampTask_10ms();
 	  //test_motors();
   }
   /* USER CODE END 3 */

@@ -69,7 +69,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+uint32_t App_GetTick(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -130,9 +130,9 @@ void Error_Handler(void);
 typedef enum
 {
     STEP_FULL      = 0b00000000,
-    STEP_HALF      = 0b00000100,
+    STEP_HALF      = 0b00000001,
     STEP_QUARTER   = 0b00000010,
-    STEP_EIGHTH    = 0b00000110,
+    STEP_EIGHTH    = 0b00000011,
     STEP_SIXTEENTH = 0b00000111
 
 } StepMode_t;
