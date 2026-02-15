@@ -188,6 +188,8 @@ typedef enum {
 
 typedef struct {
     cmd_type_t type;
+    char cmd_id[5];
+    uint8_t has_id;
     int16_t rpm_x;
     int16_t rpm_y;
     StepMode_t step_mode;

@@ -13,6 +13,7 @@
 
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 
@@ -293,9 +294,46 @@ bit_state_st enable_motors(uint8_t status){
 cmd_t parse_line(const char *s)
 {
     cmd_t c = {0};
+    char line[RX_BUFFER_SIZE];
     c.valid = 0;
     c.type = CMD_NONE;
 
+    if (!s) return c;
+
+    strncpy(line, s, sizeof(line) - 1U);
+    line[sizeof(line) - 1U] = '\0';
+
+    size_t len = strlen(line);
+    while (len > 0U && isspace((unsigned char)line[len - 1U])) {
+        line[--len] = '\0';
+    }
+    if (len < 7U) return c;
+
+    if (!isdigit((unsigned char)line[len - 1U])) return c;
+    const uint8_t rx_crc = (uint8_t)(line[len - 1U] - '0');
+
+    if (line[len - 2U] != '*') return c;
+    line[len - 2U] = '\0';
+
+    uint8_t calc_crc = 0U;
+    for (size_t i = 0U; line[i] != '\0'; ++i) {
+        calc_crc = (uint8_t)((calc_crc + (uint8_t)line[i]) % 10U);
+    }
+    if (calc_crc != rx_crc) return c;
+
+    s = line;
+
+    while (*s == ' ') s++;
+    if (*s == '\0') return c;
+
+    for (uint8_t i = 0U; i < 4U; ++i) {
+        if (!isalnum((unsigned char)s[i])) return c;
+        c.cmd_id[i] = s[i];
+    }
+    c.cmd_id[4] = '\0';
+    c.has_id = 1U;
+
+    s += 4;
     while (*s == ' ') s++;
     if (*s == '\0') return c;
 
