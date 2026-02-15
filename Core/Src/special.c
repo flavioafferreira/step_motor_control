@@ -307,6 +307,7 @@ cmd_t parse_line(const char *s)
     while (len > 0U && isspace((unsigned char)line[len - 1U])) {
         line[--len] = '\0';
     }
+#if CMD_CHECKSUM_ENABLED
     if (len < 7U) return c;
 
     if (!isdigit((unsigned char)line[len - 1U])) return c;
@@ -320,6 +321,11 @@ cmd_t parse_line(const char *s)
         calc_crc = (uint8_t)((calc_crc + (uint8_t)line[i]) % 10U);
     }
     if (calc_crc != rx_crc) return c;
+#else
+    if (len >= 2U && line[len - 2U] == '*' && isdigit((unsigned char)line[len - 1U])) {
+        line[len - 2U] = '\0';
+    }
+#endif
 
     s = line;
 

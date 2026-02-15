@@ -92,7 +92,7 @@ void cmd_analise_task(void){
 
 	if (rx_line_ready) {
 	    rx_line_ready = 0;
-	    char fallback_id[5] = "----";
+	    char fallback_id[5] = "0000";
 	    uint8_t has_fallback_id = 1U;
 	    for (uint8_t i = 0U; i < 4U; ++i) {
 	        if (!isalnum((unsigned char)rx_buffer[i])) {
@@ -102,18 +102,20 @@ void cmd_analise_task(void){
 	        fallback_id[i] = rx_buffer[i];
 	    }
 
+	    if (!has_fallback_id) {
+	    	strcpy(fallback_id, "0000");
+	    }
+
 	    cmd_t cmd = parse_line((char*)rx_buffer);
 	    if (cmd.valid){
 	        apply_cmd(&cmd);
 	        if (cmd.has_id) {
 	            printf("%s1\n\r", cmd.cmd_id);
-	        } else if (has_fallback_id) {
+	        } else {
 	            printf("%s1\n\r", fallback_id);
 	        }
 		} else {
-	        if (has_fallback_id) {
-	            printf("%s0\n\r", fallback_id);
-	        }
+	        printf("%s0\n\r", fallback_id);
 	    }
 		}
 
@@ -238,6 +240,14 @@ int main(void)
   printf("\n\r\n\r<Ready>\n\r");
 
   printf("COMMANDS\n\r");
+  printf("FRAME: IIII <CMD> *C <CR/LF>\n\r");
+  printf("IIII = 4 chars [A-Z0-9], C = checksum (sum ASCII of 'IIII <CMD>' modulo 10)\n\r");
+  printf("Resposta: IIII1 (ok) ou IIII0 (erro de formato/comando/checksum)\n\r");
+  printf("EXEMPLOS COM CRC CORRETO:\n\r");
+  printf("AB12 S 1*1\n\r");
+  printf("AB12 S 16*5\n\r");
+  printf("AB12 V 100 -120*5\n\r");
+  printf("AB12 R 5 5 5*6\n\r");
   printf("S 1  <cr> = STEP_FULL\n\r");
   printf("S 16 <cr> = STEP_SIXTEENTH\n\r");
   printf("V 100 -120 <cr> = MOTOR X RIGHT DIRECTION 100rpm and MOTOR Y LEFT DIRECTION 120rpm\n\r");

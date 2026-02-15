@@ -147,6 +147,10 @@ uint32_t App_GetTick(void);
 //Delay do loop principal (usado no fallback da rampa)
 #define MAIN_LOOP_DELAY_MS   2U
 
+// Habilita (1) ou desabilita (0) a validação do checksum no frame serial
+#define CMD_CHECKSUM_ENABLED 1U
+
+
 //https://www.handsontec.com/dataspecs/module/A4988.pdf
 typedef enum
 {
