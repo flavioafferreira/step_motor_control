@@ -148,7 +148,7 @@ uint32_t App_GetTick(void);
 #define MAIN_LOOP_DELAY_MS   2U
 
 // Habilita (1) ou desabilita (0) a validação do checksum no frame serial
-#define CMD_CHECKSUM_ENABLED 1U
+#define CMD_CHECKSUM_ENABLED 0U
 
 
 //https://www.handsontec.com/dataspecs/module/A4988.pdf
