@@ -111,9 +111,7 @@ void usart1_interrupt_handler(void){
         // Armazenar o dado no buffer até o caractere '\n' ou até o buffer ficar cheio
         if (data == '\n' || data == '\r' || rx_index >= RX_BUFFER_SIZE - 1)
         {
-
             rx_buffer_intern[rx_index] = '\0';  // Termina a string
-
             memcpy(rx_buffer, rx_buffer_intern, rx_index + 1);
             rx_index = 0;  // Resetar o índice para o próximo recebimento
             rx_line_ready = 1;

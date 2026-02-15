@@ -124,7 +124,13 @@ uint32_t App_GetTick(void);
 #define MOTOR_X 0
 #define MOTOR_Y 1
 
+//ACCELERATION RAMP CONFIGURATION
+//A cada ACCEL_RAMP_PERIOD_MS, a velocidade atual anda ACCEL_RAMP_STEP_RPM em direção ao alvo.
+#define ACCEL_RAMP_PERIOD_MS 100U
+#define ACCEL_RAMP_STEP_RPM  10
 
+//Delay do loop principal (usado no fallback da rampa)
+#define MAIN_LOOP_DELAY_MS   2U
 
 //https://www.handsontec.com/dataspecs/module/A4988.pdf
 typedef enum

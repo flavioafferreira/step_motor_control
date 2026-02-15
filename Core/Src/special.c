@@ -358,11 +358,41 @@ void Motor_RampTask_10ms(void)
     static uint32_t last_tick = 0;
     const uint32_t now = App_GetTick();
 
-    if ((now - last_tick) < 10U)
-        return;
-    last_tick = now;
+    static uint32_t acc_ms = 0;
+    static uint8_t fallback_calls = 0;
 
-    const int16_t step_rpm = 10;
+    // caminho normal: base de tempo por SysTick/App_GetTick
+
+
+    // caminho normal: base de tempo por SysTick/App_GetTick
+       if (now != last_tick)
+       {
+           acc_ms += (now - last_tick);
+           last_tick = now;
+           fallback_calls = 0;
+
+           if (acc_ms < ACCEL_RAMP_PERIOD_MS)
+               return;
+
+           acc_ms = 0;
+       }
+       // fallback: se o tick não avançar, mantém a rampa por chamadas (~2ms no loop principal)
+       else
+       {
+           uint8_t fallback_calls_target = (uint8_t)((ACCEL_RAMP_PERIOD_MS + (MAIN_LOOP_DELAY_MS - 1U)) / MAIN_LOOP_DELAY_MS);
+           if (fallback_calls_target == 0U)
+               fallback_calls_target = 1U;
+
+           if (++fallback_calls < fallback_calls_target)
+               return;
+
+
+           fallback_calls = 0;
+       }
+
+       const int16_t step_rpm = ACCEL_RAMP_STEP_RPM;
+
+
 
     if (g_curr_rpm_x < g_target_rpm_x) {
         g_curr_rpm_x += step_rpm;
