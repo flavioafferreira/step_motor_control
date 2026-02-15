@@ -28,6 +28,10 @@ static int16_t g_curr_rpm_y = 0;
 static int16_t g_target_rpm_x = 0;
 static int16_t g_target_rpm_y = 0;
 
+static uint16_t g_ramp_period_ms = ACCEL_RAMP_PERIOD_MS_DEFAULT;
+static int16_t g_accel_step_rpm = ACCEL_RAMP_STEP_RPM_DEFAULT;
+static int16_t g_decel_step_rpm = DECEL_RAMP_STEP_RPM_DEFAULT;
+
 
 static int16_t clamp_rpm_to_effective_limit(int16_t rpm)
 {
@@ -54,13 +58,13 @@ static int16_t ramp_axis_towards_target(int16_t current, int16_t target)
 {
     if (current < target) {
         int16_t delta = target - current;
-        int16_t step = (delta < ACCEL_RAMP_STEP_RPM) ? delta : ACCEL_RAMP_STEP_RPM;
+        int16_t step = (delta < g_accel_step_rpm) ? delta : g_accel_step_rpm;
         return (int16_t)(current + step);
     }
 
     if (current > target) {
         int16_t delta = current - target;
-        int16_t step = (delta < DECEL_RAMP_STEP_RPM) ? delta : DECEL_RAMP_STEP_RPM;
+        int16_t step = (delta < g_decel_step_rpm) ? delta : g_decel_step_rpm;
         return (int16_t)(current - step);
     }
 
@@ -346,6 +350,48 @@ cmd_t parse_line(const char *s)
         return c;
     }
 
+    // ----- Comando R: configuração da rampa -----
+    if (*s == 'R' || *s == 'r')
+    {
+        s++;
+        while (*s == ' ') s++;
+        if (*s == '\0') return c;
+
+        char *endp;
+        long period_ms = strtol(s, &endp, 10);
+        if (endp == s) return c;
+        s = endp;
+
+        while (*s == ' ') s++;
+        if (*s == '\0') return c;
+
+        long accel_step = strtol(s, &endp, 10);
+        if (endp == s) return c;
+        s = endp;
+
+        while (*s == ' ') s++;
+        if (*s == '\0') return c;
+
+        long decel_step = strtol(s, &endp, 10);
+        if (endp == s) return c;
+
+        if (period_ms < 1) period_ms = 1;
+        if (period_ms > 1000) period_ms = 1000;
+
+        if (accel_step < 1) accel_step = 1;
+        if (accel_step > 2000) accel_step = 2000;
+
+        if (decel_step < 1) decel_step = 1;
+        if (decel_step > 2000) decel_step = 2000;
+
+        c.type = CMD_RAMP;
+        c.ramp_period_ms = (uint16_t)period_ms;
+        c.accel_step_rpm = (int16_t)accel_step;
+        c.decel_step_rpm = (int16_t)decel_step;
+        c.valid = 1;
+        return c;
+    }
+
     return c;
 }
 
@@ -386,6 +432,18 @@ void apply_cmd(const cmd_t *c)
 
         g_curr_rpm_x = clamp_rpm_to_effective_limit(g_curr_rpm_x);
         g_curr_rpm_y = clamp_rpm_to_effective_limit(g_curr_rpm_y);
+        return;
+    }
+
+    if (c->type == CMD_RAMP){
+        g_ramp_period_ms = c->ramp_period_ms;
+        g_accel_step_rpm = c->accel_step_rpm;
+        g_decel_step_rpm = c->decel_step_rpm;
+
+        printf("RAMP CFG: period=%ums accel=%d decel=%d\n\r",
+               (unsigned int)g_ramp_period_ms,
+               (int)g_accel_step_rpm,
+               (int)g_decel_step_rpm);
     }
 }
 
@@ -413,7 +471,7 @@ void Motor_RampTask_10ms(void)
            last_tick = now;
            fallback_calls = 0;
 
-           if (acc_ms < ACCEL_RAMP_PERIOD_MS)
+           if (acc_ms < g_ramp_period_ms)
                return;
 
            acc_ms = 0;
@@ -421,7 +479,7 @@ void Motor_RampTask_10ms(void)
        // fallback: se o tick não avançar, mantém a rampa por chamadas (~2ms no loop principal)
        else
        {
-           uint8_t fallback_calls_target = (uint8_t)((ACCEL_RAMP_PERIOD_MS + (MAIN_LOOP_DELAY_MS - 1U)) / MAIN_LOOP_DELAY_MS);
+           uint8_t fallback_calls_target = (uint8_t)((g_ramp_period_ms + (MAIN_LOOP_DELAY_MS - 1U)) / MAIN_LOOP_DELAY_MS);
            if (fallback_calls_target == 0U)
                fallback_calls_target = 1U;
 
