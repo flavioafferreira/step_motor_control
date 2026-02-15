@@ -221,6 +221,7 @@ int main(void)
   printf("S 1  <cr> = STEP_FULL\n\r");
   printf("S 16 <cr> = STEP_SIXTEENTH\n\r");
   printf("V 100 -120 <cr> = MOTOR X RIGHT DIRECTION 100rpm and MOTOR Y LEFT DIRECTION 120rpm\n\r");
+  printf("R 5 5 5 <cr> = CONFIG RAMP period_ms accel_step decel_step\n\r");
 
   relay=relay_on_off(POWER_OFF);
 

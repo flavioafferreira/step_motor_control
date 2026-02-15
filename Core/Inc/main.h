@@ -126,8 +126,23 @@ uint32_t App_GetTick(void);
 
 //ACCELERATION RAMP CONFIGURATION
 //A cada ACCEL_RAMP_PERIOD_MS, a velocidade atual anda ACCEL_RAMP_STEP_RPM em direção ao alvo.
-#define ACCEL_RAMP_PERIOD_MS 100U
-#define ACCEL_RAMP_STEP_RPM  10
+//Na desaceleração usamos um passo maior para reduzir a velocidade com menor latência.
+
+
+#define ACCEL_RAMP_PERIOD_MS_DEFAULT 5U
+#define ACCEL_RAMP_STEP_RPM_DEFAULT  5
+
+
+#define ACCEL_RAMP_STEP_RPM 5
+#define ACCEL_RAMP_PERIOD_MS 5
+
+#define DECEL_RAMP_STEP_RPM  5
+#define DECEL_RAMP_STEP_RPM_DEFAULT  5
+
+
+
+//Largura do pulso STEP em ticks de timer (deve ser <= ARR).
+#define STEP_PULSE_CCR_TICKS  120U
 
 //Delay do loop principal (usado no fallback da rampa)
 #define MAIN_LOOP_DELAY_MS   2U
@@ -167,7 +182,8 @@ typedef struct dir_status_ {
 typedef enum {
     CMD_NONE = 0,
     CMD_VEL,
-    CMD_STEP
+    CMD_STEP,
+	CMD_RAMP
 } cmd_type_t;
 
 typedef struct {
@@ -175,6 +191,9 @@ typedef struct {
     int16_t rpm_x;
     int16_t rpm_y;
     StepMode_t step_mode;
+    uint16_t ramp_period_ms;
+    int16_t accel_step_rpm;
+    int16_t decel_step_rpm;
     uint8_t valid;
 
 

@@ -29,6 +29,45 @@ static int16_t g_target_rpm_x = 0;
 static int16_t g_target_rpm_y = 0;
 
 
+static int16_t clamp_rpm_to_effective_limit(int16_t rpm)
+{
+    int16_t sign = 1;
+    int16_t abs_rpm = rpm;
+
+    if (rpm < 0) {
+        sign = -1;
+        abs_rpm = (int16_t)(-rpm);
+    }
+
+    const uint8_t divider = rpm_divider(step_config);
+    const float max_rpm_f = 300000.0f / ((float)(STEP_PULSE_CCR_TICKS + 1U) * (float)divider);
+    int16_t max_rpm = (int16_t)(max_rpm_f + 0.5f);
+
+    if (abs_rpm > max_rpm)
+        abs_rpm = max_rpm;
+
+    return (int16_t)(sign * abs_rpm);
+}
+
+
+static int16_t ramp_axis_towards_target(int16_t current, int16_t target)
+{
+    if (current < target) {
+        int16_t delta = target - current;
+        int16_t step = (delta < ACCEL_RAMP_STEP_RPM) ? delta : ACCEL_RAMP_STEP_RPM;
+        return (int16_t)(current + step);
+    }
+
+    if (current > target) {
+        int16_t delta = current - target;
+        int16_t step = (delta < DECEL_RAMP_STEP_RPM) ? delta : DECEL_RAMP_STEP_RPM;
+        return (int16_t)(current - step);
+    }
+
+    return current;
+}
+
+
 
 
 relay_st relay_on_off(uint8_t control){
@@ -190,7 +229,7 @@ void Motor_SetRPM(uint8_t motor, float rpm){
 
     uint32_t arr = (uint32_t)(arr_f + 0.5f);
 
-    const uint32_t ccr = 120; // ~100us
+    const uint32_t ccr = STEP_PULSE_CCR_TICKS; // ~100us
 
     if (arr < ccr)
         arr = ccr;
@@ -342,8 +381,11 @@ void apply_cmd(const cmd_t *c)
     }
 
     if (c->type == CMD_VEL){
-        g_target_rpm_x = c->rpm_x;
-                g_target_rpm_y = c->rpm_y;
+        g_target_rpm_x = clamp_rpm_to_effective_limit(c->rpm_x);
+        g_target_rpm_y = clamp_rpm_to_effective_limit(c->rpm_y);
+
+        g_curr_rpm_x = clamp_rpm_to_effective_limit(g_curr_rpm_x);
+        g_curr_rpm_y = clamp_rpm_to_effective_limit(g_curr_rpm_y);
     }
 }
 
@@ -390,25 +432,8 @@ void Motor_RampTask_10ms(void)
            fallback_calls = 0;
        }
 
-       const int16_t step_rpm = ACCEL_RAMP_STEP_RPM;
-
-
-
-    if (g_curr_rpm_x < g_target_rpm_x) {
-        g_curr_rpm_x += step_rpm;
-        if (g_curr_rpm_x > g_target_rpm_x) g_curr_rpm_x = g_target_rpm_x;
-    } else if (g_curr_rpm_x > g_target_rpm_x) {
-        g_curr_rpm_x -= step_rpm;
-        if (g_curr_rpm_x < g_target_rpm_x) g_curr_rpm_x = g_target_rpm_x;
-    }
-
-    if (g_curr_rpm_y < g_target_rpm_y) {
-        g_curr_rpm_y += step_rpm;
-        if (g_curr_rpm_y > g_target_rpm_y) g_curr_rpm_y = g_target_rpm_y;
-    } else if (g_curr_rpm_y > g_target_rpm_y) {
-        g_curr_rpm_y -= step_rpm;
-        if (g_curr_rpm_y < g_target_rpm_y) g_curr_rpm_y = g_target_rpm_y;
-    }
+    g_curr_rpm_x = ramp_axis_towards_target(g_curr_rpm_x, g_target_rpm_x);
+    g_curr_rpm_y = ramp_axis_towards_target(g_curr_rpm_y, g_target_rpm_y);
 
     // X
     if (g_curr_rpm_x == 0) {
@@ -432,4 +457,3 @@ void Motor_RampTask_10ms(void)
         Motor_SetRPM(MOTOR_Y, (float)(-g_curr_rpm_y));
     }
 }
-
